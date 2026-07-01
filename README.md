@@ -28,11 +28,29 @@ CVEs. There is no editor, debugger, package manager, or shell to exploit.
 across **all severities including unfixed**, then:
 
 - **Hard-fails** on any **fixable** CVE (means the image isn't on the latest — rebuild).
-- Reports the **true total**; the 0-CVE target is met when total = 0. Any residual
-  is an **unfixed** CVE (no upstream patch — "impossible to update to the latest"),
-  surfaced daily so it's caught the moment a fix ships.
+- Reports the **true total**; residual CVEs are all **unfixed** (no upstream patch —
+  "impossible to update to the latest"), surfaced daily so they're caught the
+  moment a fix ships.
 
 The live counts are in the workflow's job summary and the `trivy-micro` artifact.
+
+### The honest ceiling on UBI 9-micro
+
+This image reaches **0 fixable CVEs** with only a small set of **unfixed** ones
+(dominated by `glibc` and the OpenSSL/CA-trust stack). **Literal 0 total is not
+achievable on any UBI 9 image** while Red Hat has open, unpatched CVEs in `glibc`
+(which every dynamically-linked container needs) — Trivy reports those as
+`affected / no fix`. The remainder here is essentially:
+
+- `glibc` / `libgcc` — irreducible (the C runtime).
+- `openssl-libs` / `p11-kit` — pulled by `ca-certificates` (TLS trust). Drop
+  `ca-certificates` for an even smaller, TLS-less variant if your workload adds
+  its own trust store.
+- `libacl` / `libattr` — pulled by the coreutils dependency closure.
+
+For a **literal 0-CVE** image you need a distro that rebuilds packages with fixes
+ahead of Red Hat's cadence (e.g. Chainguard/Wolfi or Minimus) — a different
+ecosystem, outside RHEL/UBI.
 
 ## Using it
 
