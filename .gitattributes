@@ -1,0 +1,4 @@
+# Enforce LF; CRLF breaks shell/scriptlets executed inside Linux containers.
+* text=auto eol=lf
+Containerfile* text eol=lf
+*.sh text eol=lf
