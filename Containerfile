@@ -17,12 +17,13 @@ FROM ${UBI_BUILDER} AS builder
 ARG ROOTFS=/mnt/rootfs
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 RUN mkdir -p "${ROOTFS}"; \
-    # Install ONLY what a base image needs; no weak deps, no docs.
+    # Install ONLY what a base image needs; no weak deps, no docs. Installing into
+    # an empty installroot pulls the full dependency closure at its LATEST version,
+    # so no separate `dnf update` is needed (and it would fail -- the fresh rootfs
+    # has no repo files of its own).
     dnf -y --installroot="${ROOTFS}" --releasever=9 \
         --setopt=install_weak_deps=0 --setopt=tsflags=nodocs \
         install ca-certificates tzdata; \
-    # Ensure everything is at the latest available (security) version.
-    dnf -y --installroot="${ROOTFS}" --releasever=9 update; \
     dnf -y --installroot="${ROOTFS}" clean all; \
     rm -rf "${ROOTFS}"/var/cache/* "${ROOTFS}"/var/log/* \
            "${ROOTFS}"/tmp/* "${ROOTFS}"/var/tmp/* 2>/dev/null || true; \
